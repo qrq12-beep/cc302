@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced To-Do List</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>📋 My Tasks</h1>
+            <div class="stats-bar">
+                <div class="stat-item">
+                    <span class="stat-label">Total</span>
+                    <span class="stat-value" id="totalTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Pending</span>
+                    <span class="stat-value pending" id="pendingTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Completed</span>
+                    <span class="stat-value completed" id="completedTasks">0</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Add Task Form -->
+        <div class="add-task-section">
+            <h2>➕ Add New Task</h2>
+            <form id="addTaskForm">
+                <div class="form-row">
+                    <input type="text" id="taskTitle" placeholder="Task title *" required>
+                </div>
+                <div class="form-row">
+                    <textarea id="taskDescription" placeholder="Description (optional)" rows="2"></textarea>
+                </div>
+                <div class="form-row form-grid">
+                    <select id="taskCategory">
+                        <option value="General">General</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Health">Health</option>
+                        <option value="Study">Study</option>
+                    </select>
+                    <select id="taskPriority">
+                        <option value="Low">Low Priority</option>
+                        <option value="Medium" selected>Medium Priority</option>
+                        <option value="High">High Priority</option>
+                    </select>
+                    <input type="date" id="taskDueDate">
+                </div>
+                <div class="form-row">
+                    <input type="text" id="taskTags" placeholder="Tags (comma-separated, e.g., urgent, important)">
+                </div>
+                <button type="submit" class="btn btn-primary">Add Task</button>
+            </form>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <h3>🔍 Filters & Search</h3>
+            <div class="filters-grid">
+                <input type="text" id="searchInput" placeholder="Search tasks...">
+                <select id="filterCategory">
+                    <option value="all">All Categories</option>
+                    <option value="General">General</option>
+                    <option value="Work">Work</option>
+                    <option value="Personal">Personal</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Health">Health</option>
+                    <option value="Study">Study</option>
+                </select>
+                <select id="filterPriority">
+                    <option value="all">All Priorities</option>
+                    <option value="High">High Priority</option>
+                    <option value="Medium">Medium Priority</option>
+                    <option value="Low">Low Priority</option>
+                </select>
+                <select id="filterStatus">
+                    <option value="all">All Tasks</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <select id="sortBy">
+                    <option value="created">Sort by Created</option>
+                    <option value="dueDate">Sort by Due Date</option>
+                    <option value="priority">Sort by Priority</option>
+                    <option value="title">Sort by Title</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Tasks List -->
+        <div class="tasks-section">
+            <div class="section-header">
+                <h2>📝 Tasks</h2>
+                <button class="btn btn-secondary" id="clearCompleted">Clear Completed</button>
+            </div>
+            <div id="tasksList" class="tasks-list">
+                <!-- Tasks will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>✏️ Edit Task</h2>
+            <form id="editTaskForm">
+                <input type="hidden" id="editTaskId">
+                <div class="form-row">
+                    <input type="text" id="editTaskTitle" placeholder="Task title *" required>
+                </div>
+                <div class="form-row">
+                    <textarea id="editTaskDescription" placeholder="Description" rows="3"></textarea>
+                </div>
+                <div class="form-row form-grid">
+                    <select id="editTaskCategory">
+                        <option value="General">General</option>
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Health">Health</option>
+                        <option value="Study">Study</option>
+                    </select>
+                    <select id="editTaskPriority">
+                        <option value="Low">Low Priority</option>
+                        <option value="Medium">Medium Priority</option>
+                        <option value="High">High Priority</option>
+                    </select>
+                    <input type="date" id="editTaskDueDate">
+                </div>
+                <div class="form-row">
+                    <input type="text" id="editTaskTags" placeholder="Tags (comma-separated)">
+                </div>
+                <div class="modal-buttons">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" id="cancelEdit">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

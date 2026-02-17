@@ -58,14 +58,7 @@ git push origin v0.1.0
 ## Screenshots
 
 
-- `screenshots/branch_list.png` — branch list output or screenshot
-  
-    ![Branch list screenshot](./screenshots/branch_list.png)
-- `screenshots/dockerhub_tags.png` — Docker Hub tags view
-  
-   ![DockerHub tags screenshot](./screenshots/dockerhub_tags.png)
----
-
+Screenshots submitted separately
 ## Short Reflection
 
 > Using a simple `main` → `dev` → feature branch workflow helped isolate work, made reviews easier, and let CI validate changes before release. Tagging releases and publishing Docker images made deployments repeatable.

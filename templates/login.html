@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskflow — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* ── auth page layout ── */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .auth-box {
+            background: var(--surface1);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.45);
+            position: relative;
+            z-index: 1;
+        }
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+        .auth-brand-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+        }
+        .auth-brand-name {
+            font-family: 'Syne', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--text-1);
+            letter-spacing: -0.5px;
+        }
+        .auth-tabs {
+            display: flex;
+            gap: 4px;
+            background: var(--surface2);
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 24px;
+        }
+        .auth-tab {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--text-3);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.18s;
+        }
+        .auth-tab.active {
+            background: var(--accent);
+            color: #fff;
+        }
+        .auth-form { display: flex; flex-direction: column; gap: 12px; }
+        .auth-form .input { width: 100%; box-sizing: border-box; }
+        .auth-submit {
+            margin-top: 4px;
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 10px;
+            background: var(--accent);
+            color: #fff;
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: opacity 0.18s;
+        }
+        .auth-submit:hover { opacity: 0.88; }
+        .auth-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+        .auth-error {
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--red);
+            font-size: 0.83rem;
+            display: none;
+        }
+        .auth-error.show { display: block; }
+        .auth-hint {
+            text-align: center;
+            font-size: 0.78rem;
+            color: var(--text-3);
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+
+    <div class="auth-page">
+        <div class="auth-box">
+            <div class="auth-brand">
+                <div class="auth-brand-icon">✦</div>
+                <span class="auth-brand-name">Taskflow</span>
+            </div>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="tabLogin">Sign In</button>
+                <button class="auth-tab" id="tabRegister">Create Account</button>
+            </div>
+
+            <div id="authError" class="auth-error"></div>
+
+            <!-- Login form -->
+            <form class="auth-form" id="loginForm">
+                <input class="input" type="text" id="loginUsername" placeholder="Username" autocomplete="username" required>
+                <input class="input" type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+                <button class="auth-submit" type="submit" id="loginBtn">Sign In</button>
+            </form>
+
+            <!-- Register form (hidden by default) -->
+            <form class="auth-form" id="registerForm" style="display:none">
+                <input class="input" type="text" id="regUsername" placeholder="Choose a username" autocomplete="username" required>
+                <input class="input" type="password" id="regPassword" placeholder="Choose a password (min 4 chars)" autocomplete="new-password" required>
+                <button class="auth-submit" type="submit" id="regBtn">Create Account</button>
+            </form>
+
+            <p class="auth-hint">Your tasks are private and only visible to you.</p>
+        </div>
+    </div>
+
+    <script>
+        var loginForm    = document.getElementById('loginForm');
+        var registerForm = document.getElementById('registerForm');
+        var tabLogin     = document.getElementById('tabLogin');
+        var tabRegister  = document.getElementById('tabRegister');
+        var errorEl      = document.getElementById('authError');
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.classList.add('show');
+        }
+        function clearError() { errorEl.classList.remove('show'); }
+
+        tabLogin.addEventListener('click', function() {
+            tabLogin.classList.add('active');
+            tabRegister.classList.remove('active');
+            loginForm.style.display = 'flex';
+            registerForm.style.display = 'none';
+            clearError();
+        });
+
+        tabRegister.addEventListener('click', function() {
+            tabRegister.classList.add('active');
+            tabLogin.classList.remove('active');
+            registerForm.style.display = 'flex';
+            loginForm.style.display = 'none';
+            clearError();
+        });
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearError();
+            var btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Signing in…';
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: document.getElementById('loginUsername').value,
+                    password: document.getElementById('loginPassword').value
+                })
+            })
+            .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+            .then(function(res) {
+                if (res.ok) { window.location.href = '/'; }
+                else { showError(res.data.error || 'Login failed'); btn.disabled = false; btn.textContent = 'Sign In'; }
+            })
+            .catch(function() { showError('Network error'); btn.disabled = false; btn.textContent = 'Sign In'; });
+        });
+
+        registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            clearError();
+            var btn = document.getElementById('regBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creating account…';
+            fetch('/api/register', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    username: document.getElementById('regUsername').value,
+                    password: document.getElementById('regPassword').value
+                })
+            })
+            .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+            .then(function(res) {
+                if (res.ok) { window.location.href = '/'; }
+                else { showError(res.data.error || 'Registration failed'); btn.disabled = false; btn.textContent = 'Create Account'; }
+            })
+            .catch(function() { showError('Network error'); btn.disabled = false; btn.textContent = 'Create Account'; });
+        });
+    </script>
+</body>
+</html>

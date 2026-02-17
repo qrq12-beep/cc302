@@ -59,8 +59,10 @@ git push origin v0.1.0
 
 
 - `screenshots/branch_list.png` — branch list output or screenshot
+  
     ![Branch list screenshot](./screenshots/branch_list.png)
 - `screenshots/dockerhub_tags.png` — Docker Hub tags view
+  
    ![DockerHub tags screenshot](./screenshots/dockerhub_tags.png)
 ---
 
@@ -85,27 +87,6 @@ If you want this adjusted for a different student name, repo URL, or to include 
 ---
 
 ## Required Evidence 
-
-- **Branch list screenshot / output**
-
-	Add a screenshot at `screenshots/branch_list.png`, or paste the output of `git branch -a` below.
-
-	Example branch list (replace with your actual output or screenshot):
-
-	```bash
-	dev
-	feature/focus-sessions
-	feature/smart-quick-add
-	feature/task-dependencies
-* main
-	remotes/origin/HEAD -> origin/main
-	remotes/origin/dev
-	remotes/origin/feature/ci-cd-pipeline
-	remotes/origin/feature/focus-sessions
-	remotes/origin/feature/smart-quick-add
-	remotes/origin/feature/task-dependencies
-	remotes/origin/main
-	```
 
 - **3 Feature PR links (feature → dev)**
 

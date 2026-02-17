@@ -61,7 +61,7 @@ git push origin v0.1.0
 - `screenshots/branch_list.png` — branch list output or screenshot
     ![Branch list screenshot](./screenshots/branch_list.png)
 - `screenshots/dockerhub_tags.png` — Docker Hub tags view
-  ![DockerHub tags screenshot](./screenshots/dockerhub_tags.png)
+   ![DockerHub tags screenshot](./screenshots/dockerhub_tags.png)
 ---
 
 ## Short Reflection

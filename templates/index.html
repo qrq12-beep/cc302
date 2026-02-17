@@ -11,14 +11,13 @@
 </head>
 <body>
 
-    <!-- Ambient background -->
     <div class="bg-orb orb-1"></div>
     <div class="bg-orb orb-2"></div>
     <div class="bg-orb orb-3"></div>
 
     <div class="app-shell">
 
-        <!-- Sidebar -->
+        <!-- ── Sidebar ── -->
         <aside class="sidebar">
             <div class="brand">
                 <div class="brand-icon">✦</div>
@@ -36,7 +35,6 @@
                 </button>
             </nav>
 
-            <!-- Quick Stats in sidebar -->
             <div class="sidebar-stats">
                 <div class="sstat">
                     <span class="sstat-num" id="sb-total">0</span>
@@ -57,7 +55,7 @@
             <div class="sidebar-footer">
                 <div class="completion-ring-wrap">
                     <svg class="completion-ring" viewBox="0 0 56 56">
-                        <circle class="ring-bg" cx="28" cy="28" r="22"/>
+                        <circle class="ring-bg"   cx="28" cy="28" r="22"/>
                         <circle class="ring-fill" id="ring-fill" cx="28" cy="28" r="22" stroke-dasharray="0 138.23"/>
                     </svg>
                     <span class="ring-label" id="ring-pct">0%</span>
@@ -66,10 +64,10 @@
             </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- ── Main ── -->
         <main class="main-content">
 
-            <!-- ─── TASKS TAB ─── -->
+            <!-- TASKS TAB -->
             <section class="tab-panel active" id="tab-tasks">
 
                 <div class="page-header">
@@ -77,12 +75,10 @@
                         <h1 class="page-title">My Tasks</h1>
                         <p class="page-sub">Stay organised. Stay focused.</p>
                     </div>
-                    <button class="btn-add-trigger" id="toggleAddForm">
-                        <span>+ New Task</span>
-                    </button>
+                    <button class="btn-add-trigger" id="toggleAddForm">+ New Task</button>
                 </div>
 
-                <!-- Add Task Form (collapsible) -->
+                <!-- Add Task Form -->
                 <div class="add-form-wrap" id="addFormWrap">
                     <div class="card form-card">
                         <h3 class="card-title">Create Task</h3>
@@ -110,7 +106,7 @@
                                 <input class="input" type="date" id="taskDueDate">
                             </div>
                             <div class="form-row">
-                                <input class="input" type="text" id="taskTags" placeholder="Tags: urgent, review, meeting…">
+                                <input class="input" type="text" id="taskTags" placeholder="Tags: urgent, review…">
                             </div>
                             <div class="form-actions">
                                 <button type="submit" class="btn btn-primary">Add Task</button>
@@ -160,7 +156,7 @@
 
             </section>
 
-            <!-- ─── STATISTICS TAB ─── -->
+            <!-- STATISTICS TAB -->
             <section class="tab-panel" id="tab-stats">
 
                 <div class="page-header">
@@ -170,7 +166,6 @@
                     </div>
                 </div>
 
-                <!-- KPI row -->
                 <div class="kpi-row">
                     <div class="kpi-card">
                         <span class="kpi-icon">◈</span>
@@ -199,19 +194,14 @@
                     </div>
                 </div>
 
-                <!-- Charts row -->
                 <div class="charts-row">
-
-                    <!-- Donut chart: Status -->
                     <div class="card chart-card">
                         <h3 class="card-title">Task Status</h3>
                         <div class="donut-wrap">
                             <svg class="donut-svg" viewBox="0 0 120 120">
                                 <circle class="donut-bg" cx="60" cy="60" r="48"/>
-                                <circle class="donut-done" id="donut-done" cx="60" cy="60" r="48"
-                                    stroke-dasharray="0 301.59" stroke-dashoffset="0"/>
-                                <circle class="donut-pending" id="donut-pending" cx="60" cy="60" r="48"
-                                    stroke-dasharray="0 301.59" stroke-dashoffset="0"/>
+                                <circle class="donut-done" id="donut-done" cx="60" cy="60" r="48" stroke-dasharray="0 301.59" stroke-dashoffset="0"/>
+                                <circle class="donut-pending" id="donut-pending" cx="60" cy="60" r="48" stroke-dasharray="0 301.59" stroke-dashoffset="0"/>
                             </svg>
                             <div class="donut-center">
                                 <span id="donut-pct">0%</span>
@@ -223,31 +213,19 @@
                             <span class="legend-dot amber"></span><span>Pending</span>
                         </div>
                     </div>
-
-                    <!-- Bar chart: Priority breakdown -->
                     <div class="card chart-card">
                         <h3 class="card-title">Priority Breakdown</h3>
-                        <div class="bar-chart" id="priorityChart">
-                            <!-- generated by JS -->
-                        </div>
+                        <div class="bar-chart" id="priorityChart"></div>
                     </div>
-
-                    <!-- Bar chart: Categories -->
                     <div class="card chart-card">
                         <h3 class="card-title">Tasks by Category</h3>
-                        <div class="bar-chart" id="categoryChart">
-                            <!-- generated by JS -->
-                        </div>
+                        <div class="bar-chart" id="categoryChart"></div>
                     </div>
-
                 </div>
 
-                <!-- Activity heatmap-style row -->
                 <div class="card chart-card-wide">
                     <h3 class="card-title">Task Timeline</h3>
-                    <div class="timeline-chart" id="timelineChart">
-                        <!-- generated by JS -->
-                    </div>
+                    <div class="timeline-chart" id="timelineChart"></div>
                     <div class="chart-legend" style="margin-top:12px">
                         <span class="legend-dot green"></span><span>Completed</span>
                         <span class="legend-dot amber"></span><span>Pending</span>
@@ -255,20 +233,71 @@
                     </div>
                 </div>
 
-                <!-- Tags cloud -->
                 <div class="card" style="margin-top:16px;padding:24px 28px">
                     <h3 class="card-title">Top Tags</h3>
-                    <div class="tag-cloud" id="tagCloud">
-                        <p class="empty-hint">No tags yet</p>
-                    </div>
+                    <div class="tag-cloud" id="tagCloud"><p class="empty-hint">No tags yet</p></div>
                 </div>
 
             </section>
-
         </main>
     </div>
 
-    <!-- Edit Modal -->
+    <!-- ════════════════════════════════════════
+         TASK DETAIL DRAWER (subtasks live here)
+    ════════════════════════════════════════ -->
+    <div id="drawerBackdrop" class="drawer-backdrop"></div>
+    <aside id="taskDrawer" class="task-drawer">
+
+        <div class="drawer-header">
+            <div class="drawer-title-wrap">
+                <span id="drawerPriBadge" class="badge badge-medium">Medium</span>
+                <h2 id="drawerTitle">Task title</h2>
+            </div>
+            <button class="close-btn" id="closeDrawer">✕</button>
+        </div>
+
+        <div class="drawer-body">
+
+            <!-- Meta -->
+            <div class="drawer-meta" id="drawerMeta"></div>
+
+            <!-- Description -->
+            <p class="drawer-desc" id="drawerDesc"></p>
+
+            <!-- ── Subtasks section ── -->
+            <div class="subtasks-section">
+                <div class="subtasks-header">
+                    <span class="subtasks-label">Subtasks</span>
+                    <!-- progress badge e.g. "3 / 7" -->
+                    <span class="subtask-progress" id="subtaskProgress">0 / 0</span>
+                </div>
+
+                <!-- progress bar -->
+                <div class="subtask-bar-track">
+                    <div class="subtask-bar-fill" id="subtaskBarFill" style="width:0%"></div>
+                </div>
+
+                <!-- checklist -->
+                <ul class="subtask-list" id="subtaskList"></ul>
+
+                <!-- add subtask input -->
+                <div class="subtask-add-row">
+                    <input class="input subtask-input" type="text" id="subtaskInput"
+                           placeholder="Add a subtask… (press Enter)">
+                    <button class="btn btn-primary btn-sm" id="subtaskAddBtn">Add</button>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- drawer footer: edit / delete task -->
+        <div class="drawer-footer">
+            <button class="btn btn-ghost" id="drawerEditBtn">Edit Task</button>
+            <button class="btn btn-danger" id="drawerDeleteBtn">Delete Task</button>
+        </div>
+    </aside>
+
+    <!-- ── Edit Task Modal ── -->
     <div id="editModal" class="modal-backdrop">
         <div class="modal-box">
             <div class="modal-header">

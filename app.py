@@ -1,56 +1,143 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from datetime import datetime
-import json
-import os
+import json, os, hashlib, secrets
 
 app = Flask(__name__)
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
 
-TASKS_FILE    = 'tasks.json'
-SUBTASKS_FILE = 'subtasks.json'
+USERS_FILE = 'users.json'
 
-# ── persistence ────────────────────────────────
+# ── helpers ────────────────────────────────────
 
-def load_tasks():
-    if os.path.exists(TASKS_FILE):
-        with open(TASKS_FILE, 'r') as f:
+def hash_pw(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def data_file(kind, username):
+    safe = ''.join(c for c in username if c.isalnum() or c in '-_')
+    return f'data_{safe}_{kind}.json'
+
+# ── user store ─────────────────────────────────
+
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE) as f:
             return json.load(f)
-    return []
+    return {}
 
-def save_tasks(tasks):
-    with open(TASKS_FILE, 'w') as f:
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=2)
+
+# ── per-user task / subtask store ─────────────
+
+def load_tasks(username):
+    path = data_file('tasks', username)
+    return json.load(open(path)) if os.path.exists(path) else []
+
+def save_tasks(username, tasks):
+    with open(data_file('tasks', username), 'w') as f:
         json.dump(tasks, f, indent=2)
 
-def load_subtasks():
-    if os.path.exists(SUBTASKS_FILE):
-        with open(SUBTASKS_FILE, 'r') as f:
-            return json.load(f)
-    return []
+def load_subtasks(username):
+    path = data_file('subtasks', username)
+    return json.load(open(path)) if os.path.exists(path) else []
 
-def save_subtasks(subtasks):
-    with open(SUBTASKS_FILE, 'w') as f:
+def save_subtasks(username, subtasks):
+    with open(data_file('subtasks', username), 'w') as f:
         json.dump(subtasks, f, indent=2)
 
-def next_subtask_id(subtasks):
-    return max((s['id'] for s in subtasks), default=0) + 1
+def next_id(items):
+    return max((x['id'] for x in items), default=0) + 1
 
-# ── pages ──────────────────────────────────────
+# ── auth guard ─────────────────────────────────
+
+def current_user():
+    return session.get('username')
+
+def require_login():
+    if not current_user():
+        return jsonify({'error': 'Not logged in'}), 401
+    return None
+
+# ══════════════════════════════════════════════
+#  AUTH ROUTES
+# ══════════════════════════════════════════════
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if not current_user():
+        return redirect(url_for('login_page'))
+    return render_template('index.html', username=current_user())
 
-# ── task routes ────────────────────────────────
+@app.route('/login')
+def login_page():
+    if current_user():
+        return redirect(url_for('index'))
+    return render_template('login.html')
+
+@app.route('/api/register', methods=['POST'])
+def register():
+    data     = request.json or {}
+    username = data.get('username', '').strip().lower()
+    password = data.get('password', '')
+    if not username or not password:
+        return jsonify({'error': 'Username and password required'}), 400
+    if len(username) < 3:
+        return jsonify({'error': 'Username must be at least 3 characters'}), 400
+    if len(password) < 4:
+        return jsonify({'error': 'Password must be at least 4 characters'}), 400
+    if not username.replace('_','').replace('-','').isalnum():
+        return jsonify({'error': 'Username: letters, numbers, - _ only'}), 400
+    users = load_users()
+    if username in users:
+        return jsonify({'error': 'Username already taken'}), 409
+    users[username] = {'password': hash_pw(password), 'created_at': datetime.now().isoformat()}
+    save_users(users)
+    session['username'] = username
+    return jsonify({'ok': True, 'username': username}), 201
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data     = request.json or {}
+    username = data.get('username', '').strip().lower()
+    password = data.get('password', '')
+    users    = load_users()
+    if username not in users or users[username]['password'] != hash_pw(password):
+        return jsonify({'error': 'Invalid username or password'}), 401
+    session['username'] = username
+    return jsonify({'ok': True, 'username': username})
+
+@app.route('/api/logout', methods=['POST'])
+def logout():
+    session.clear()
+    return jsonify({'ok': True})
+
+@app.route('/api/me', methods=['GET'])
+def me():
+    u = current_user()
+    if not u:
+        return jsonify({'error': 'Not logged in'}), 401
+    return jsonify({'username': u})
+
+# ══════════════════════════════════════════════
+#  TASK ROUTES
+# ══════════════════════════════════════════════
 
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
-    return jsonify(load_tasks())
+    err = require_login()
+    if err: return err
+    return jsonify(load_tasks(current_user()))
 
 @app.route('/api/tasks', methods=['POST'])
 def add_task():
+    err = require_login()
+    if err: return err
+    u     = current_user()
     data  = request.json
-    tasks = load_tasks()
+    tasks = load_tasks(u)
     new_task = {
-        'id':          max((t['id'] for t in tasks), default=0) + 1,
+        'id':          next_id(tasks),
         'title':       data.get('title', ''),
         'description': data.get('description', ''),
         'category':    data.get('category', 'General'),
@@ -61,119 +148,134 @@ def add_task():
         'tags':        data.get('tags', []),
     }
     tasks.append(new_task)
-    save_tasks(tasks)
+    save_tasks(u, tasks)
     return jsonify(new_task), 201
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
+    err = require_login()
+    if err: return err
+    u     = current_user()
     data  = request.json
-    tasks = load_tasks()
+    tasks = load_tasks(u)
     for task in tasks:
         if task['id'] == task_id:
-            task.update({
-                'title':       data.get('title',       task['title']),
-                'description': data.get('description', task['description']),
-                'category':    data.get('category',    task['category']),
-                'priority':    data.get('priority',    task['priority']),
-                'due_date':    data.get('due_date',    task['due_date']),
-                'completed':   data.get('completed',   task['completed']),
-                'tags':        data.get('tags',        task['tags']),
-            })
-            save_tasks(tasks)
+            task.update({k: data.get(k, task[k]) for k in
+                         ['title','description','category','priority','due_date','completed','tags']})
+            save_tasks(u, tasks)
             return jsonify(task)
     return jsonify({'error': 'Task not found'}), 404
 
 @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
 def delete_task(task_id):
-    tasks = load_tasks()
-    tasks = [t for t in tasks if t['id'] != task_id]
-    save_tasks(tasks)
-    # cascade-delete subtasks
-    subtasks = [s for s in load_subtasks() if s['task_id'] != task_id]
-    save_subtasks(subtasks)
+    err = require_login()
+    if err: return err
+    u        = current_user()
+    tasks    = [t for t in load_tasks(u) if t['id'] != task_id]
+    subtasks = [s for s in load_subtasks(u) if s['task_id'] != task_id]
+    save_tasks(u, tasks)
+    save_subtasks(u, subtasks)
     return jsonify({'success': True})
 
 @app.route('/api/tasks/<int:task_id>/toggle', methods=['PUT'])
 def toggle_task(task_id):
-    tasks = load_tasks()
+    err = require_login()
+    if err: return err
+    u     = current_user()
+    tasks = load_tasks(u)
     for task in tasks:
         if task['id'] == task_id:
             task['completed'] = not task['completed']
-            save_tasks(tasks)
+            save_tasks(u, tasks)
             return jsonify(task)
     return jsonify({'error': 'Task not found'}), 404
 
-# ── subtask routes ─────────────────────────────
+# ══════════════════════════════════════════════
+#  SUBTASK ROUTES
+# ══════════════════════════════════════════════
 
 @app.route('/api/tasks/<int:task_id>/subtasks', methods=['GET'])
 def get_subtasks(task_id):
-    subs = [s for s in load_subtasks() if s['task_id'] == task_id]
-    subs.sort(key=lambda s: s.get('order', 0))
+    err = require_login()
+    if err: return err
+    subs = sorted([s for s in load_subtasks(current_user()) if s['task_id'] == task_id],
+                  key=lambda s: s.get('order', 0))
     return jsonify(subs)
 
 @app.route('/api/tasks/<int:task_id>/subtasks', methods=['POST'])
 def add_subtask(task_id):
+    err = require_login()
+    if err: return err
+    u        = current_user()
     data     = request.json
-    subtasks = load_subtasks()
+    subtasks = load_subtasks(u)
     task_subs = [s for s in subtasks if s['task_id'] == task_id]
     new_sub  = {
-        'id':      next_subtask_id(subtasks),
+        'id':      next_id(subtasks),
         'task_id': task_id,
         'title':   data.get('title', '').strip(),
         'is_done': False,
         'order':   len(task_subs),
     }
     subtasks.append(new_sub)
-    save_subtasks(subtasks)
+    save_subtasks(u, subtasks)
     return jsonify(new_sub), 201
 
 @app.route('/api/subtasks/<int:sub_id>', methods=['PUT'])
 def update_subtask(sub_id):
+    err = require_login()
+    if err: return err
+    u        = current_user()
     data     = request.json
-    subtasks = load_subtasks()
+    subtasks = load_subtasks(u)
     for sub in subtasks:
         if sub['id'] == sub_id:
-            if 'title'   in data: sub['title']   = data['title']
-            if 'is_done' in data: sub['is_done']  = data['is_done']
-            if 'order'   in data: sub['order']    = data['order']
-            save_subtasks(subtasks)
+            for key in ['title', 'is_done', 'order']:
+                if key in data: sub[key] = data[key]
+            save_subtasks(u, subtasks)
             return jsonify(sub)
     return jsonify({'error': 'Subtask not found'}), 404
 
 @app.route('/api/subtasks/<int:sub_id>', methods=['DELETE'])
 def delete_subtask(sub_id):
-    subtasks = load_subtasks()
-    subtasks = [s for s in subtasks if s['id'] != sub_id]
-    save_subtasks(subtasks)
+    err = require_login()
+    if err: return err
+    u        = current_user()
+    subtasks = [s for s in load_subtasks(u) if s['id'] != sub_id]
+    save_subtasks(u, subtasks)
     return jsonify({'success': True})
 
 @app.route('/api/tasks/<int:task_id>/subtasks/reorder', methods=['PUT'])
 def reorder_subtasks(task_id):
-    """Body: { "order": [id, id, id, ...] } """
-    data     = request.json
-    new_order = data.get('order', [])
-    subtasks = load_subtasks()
+    err = require_login()
+    if err: return err
+    u         = current_user()
+    new_order = request.json.get('order', [])
+    subtasks  = load_subtasks(u)
     id_to_pos = {sid: idx for idx, sid in enumerate(new_order)}
     for sub in subtasks:
         if sub['task_id'] == task_id and sub['id'] in id_to_pos:
             sub['order'] = id_to_pos[sub['id']]
-    save_subtasks(subtasks)
+    save_subtasks(u, subtasks)
     result = sorted([s for s in subtasks if s['task_id'] == task_id],
                     key=lambda s: s.get('order', 0))
     return jsonify(result)
 
-# ── stats ──────────────────────────────────────
+# ══════════════════════════════════════════════
+#  STATS
+# ══════════════════════════════════════════════
 
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
-    tasks = load_tasks()
+    err = require_login()
+    if err: return err
+    tasks     = load_tasks(current_user())
     total     = len(tasks)
     completed = sum(1 for t in tasks if t['completed'])
     pending   = total - completed
     priority_counts = {
-        'High':   sum(1 for t in tasks if t['priority'] == 'High'   and not t['completed']),
-        'Medium': sum(1 for t in tasks if t['priority'] == 'Medium' and not t['completed']),
-        'Low':    sum(1 for t in tasks if t['priority'] == 'Low'    and not t['completed']),
+        p: sum(1 for t in tasks if t['priority'] == p and not t['completed'])
+        for p in ['High', 'Medium', 'Low']
     }
     return jsonify({'total': total, 'completed': completed,
                     'pending': pending, 'priority_counts': priority_counts})

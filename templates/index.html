@@ -61,6 +61,7 @@
                     <span class="ring-label" id="ring-pct">0%</span>
                 </div>
                 <span class="ring-desc">completion rate</span>
+<<<<<<< HEAD
             </div>
         </aside>
 
@@ -77,6 +78,31 @@
                     </div>
                     <button class="btn-add-trigger" id="toggleAddForm">+ New Task</button>
                 </div>
+=======
+                <div class="sidebar-user">
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-avatar">{{ username[0].upper() }}</div>
+                        <span class="sidebar-username">{{ username }}</span>
+                    </div>
+                    <button class="btn-signout" id="logoutBtn" title="Sign out">⏻</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- ── Main ── -->
+        <main class="main-content">
+
+            <!-- TASKS TAB -->
+            <section class="tab-panel active" id="tab-tasks">
+
+                <div class="page-header">
+                    <div>
+                        <h1 class="page-title">My Tasks</h1>
+                        <p class="page-sub">Stay organised. Stay focused.</p>
+                    </div>
+                    <button class="btn-add-trigger" id="toggleAddForm">+ New Task</button>
+                </div>
+>>>>>>> 8e0ef3b (Merge feature/multiable-users into dev)
 
                 <!-- Add Task Form -->
                 <div class="add-form-wrap" id="addFormWrap">
@@ -340,5 +366,53 @@
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.getElementById('logoutBtn').addEventListener('click', function() {
+            fetch('/api/logout', { method: 'POST' })
+                .then(function() { window.location.href = '/login'; });
+        });
+    </script>
+    <style>
+        .sidebar-user {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+            width: 100%;
+        }
+        .sidebar-user-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .sidebar-avatar {
+            width: 26px; height: 26px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; color: #fff;
+            font-weight: 700;
+            font-family: 'Syne', sans-serif;
+        }
+        .sidebar-username {
+            font-size: 0.82rem;
+            color: var(--text-2);
+            font-family: 'DM Sans', sans-serif;
+        }
+        .btn-signout {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 7px;
+            color: var(--text-3);
+            font-size: 13px;
+            width: 26px; height: 26px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-signout:hover { border-color: var(--red, #ef4444); color: var(--red, #ef4444); }
+    </style>
 </body>
 </html>

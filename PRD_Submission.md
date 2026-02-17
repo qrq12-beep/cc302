@@ -112,4 +112,3 @@ If you want this adjusted for a different student name, repo URL, or to include 
 
 ---
 
-Place or replace the placeholder images in the `screenshots/` folder and update the PR URLs if different. When ready, export this Markdown to PDF for submission.

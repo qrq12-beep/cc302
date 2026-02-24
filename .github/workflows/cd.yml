@@ -19,7 +19,7 @@ jobs:
           username: qrq12
           password: ${{ env.DOCKER_TOKEN }}
         env:
-          DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_TOKEN: ${{ env.DOCKER_TOKEN }}
 
       - name: Extract version
         id: version

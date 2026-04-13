@@ -269,16 +269,56 @@ def reorder_subtasks(task_id):
 def get_stats():
     err = require_login()
     if err: return err
-    tasks     = load_tasks(current_user())
+    tasks = load_tasks(current_user())
+
+    today = datetime.now().date().isoformat()
+
     total     = len(tasks)
     completed = sum(1 for t in tasks if t['completed'])
     pending   = total - completed
+
+    # overdue = not completed and due date has passed
+    overdue = sum(1 for t in tasks
+                  if not t['completed']
+                  and t.get('due_date')
+                  and t['due_date'] < today)
+
+    # completed today
+    completed_today = sum(1 for t in tasks
+                          if t['completed']
+                          and t.get('due_date') == today)
+
+    # priority breakdown (pending only)
     priority_counts = {
-        p: sum(1 for t in tasks if t['priority'] == p and not t['completed'])
+        p: sum(1 for t in tasks if t.get('priority') == p and not t['completed'])
         for p in ['High', 'Medium', 'Low']
     }
-    return jsonify({'total': total, 'completed': completed,
-                    'pending': pending, 'priority_counts': priority_counts})
+
+    # tag breakdown
+    tag_counts = {}
+    for t in tasks:
+        for tag in t.get('tags', []):
+            tag_counts[tag] = tag_counts.get(tag, 0) + 1
+
+    # completion trend — last 7 days
+    from datetime import timedelta
+    trend = {}
+    for i in range(6, -1, -1):
+        day = (datetime.now().date() - timedelta(days=i)).isoformat()
+        trend[day] = sum(1 for t in tasks
+                         if t['completed']
+                         and t.get('due_date') == day)
+
+    return jsonify({
+        'total':           total,
+        'completed':       completed,
+        'pending':         pending,
+        'overdue':         overdue,
+        'completed_today': completed_today,
+        'priority_counts': priority_counts,
+        'tag_counts':      tag_counts,
+        'trend':           trend,
+    })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -279,6 +279,48 @@ def get_stats():
     }
     return jsonify({'total': total, 'completed': completed,
                     'pending': pending, 'priority_counts': priority_counts})
+    @app.route('/api/tasks/filter', methods=['GET'])
+def filter_tasks():
+    err = require_login()
+    if err: return err
+    tasks = load_tasks(current_user())
+
+    # filters
+    status   = request.args.get('status')
+    priority = request.args.get('priority')
+    tag      = request.args.get('tag')
+    due      = request.args.get('due')
+
+    if status == 'completed':
+        tasks = [t for t in tasks if t['completed']]
+    elif status == 'pending':
+        tasks = [t for t in tasks if not t['completed']]
+
+    if priority:
+        tasks = [t for t in tasks if t.get('priority') == priority]
+
+    if tag:
+        tasks = [t for t in tasks if tag in t.get('tags', [])]
+
+    if due == 'overdue':
+        today = datetime.now().date().isoformat()
+        tasks = [t for t in tasks if t.get('due_date') and t['due_date'] < today and not t['completed']]
+    elif due == 'today':
+        today = datetime.now().date().isoformat()
+        tasks = [t for t in tasks if t.get('due_date') == today]
+
+    # sorting
+    sort_by = request.args.get('sort', 'created_at')
+    reverse = request.args.get('order', 'desc') == 'desc'
+
+    priority_rank = {'High': 0, 'Medium': 1, 'Low': 2}
+
+    if sort_by == 'priority':
+        tasks.sort(key=lambda t: priority_rank.get(t.get('priority', 'Low'), 2), reverse=not reverse)
+    else:
+        tasks.sort(key=lambda t: t.get(sort_by, ''), reverse=reverse)
+
+    return jsonify(tasks)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

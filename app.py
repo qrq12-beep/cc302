@@ -279,6 +279,20 @@ def get_stats():
     }
     return jsonify({'total': total, 'completed': completed,
                     'pending': pending, 'priority_counts': priority_counts})
+    @app.route('/api/tasks/search', methods=['GET'])
+def search_tasks():
+    err = require_login()
+    if err: return err
+    q = request.args.get('q', '').strip().lower()
+    if not q:
+        return jsonify([])
+    tasks = load_tasks(current_user())
+    results = [t for t in tasks if
+               q in t.get('title', '').lower() or
+               q in t.get('description', '').lower() or
+               q in t.get('category', '').lower() or
+               any(q in tag.lower() for tag in t.get('tags', []))]
+    return jsonify(results)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
